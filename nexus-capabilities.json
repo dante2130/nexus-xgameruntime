@@ -1,4 +1,4 @@
 {
   "schema": 1,
-  "features": ["xuser-offline-identity-v2", "xgame-invitations-v1"]
+  "features": ["xuser-offline-identity-v2", "xgame-invitations-v1", "achievement-notify-v1"]
 }

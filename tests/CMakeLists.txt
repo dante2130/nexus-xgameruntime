@@ -155,6 +155,12 @@ foreach(probe sync transfer commit atomic index fencing)
     set_target_properties(nexus_gamesave-${probe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 endforeach()
 
+add_executable(nexus_achievement-notify Nexus/achievement-notify.cpp)
+target_link_libraries(nexus_achievement-notify PRIVATE xgameruntime-impl)
+target_compile_features(nexus_achievement-notify PRIVATE cxx_std_23)
+target_link_options(nexus_achievement-notify PRIVATE -static -static-libgcc -static-libstdc++)
+set_target_properties(nexus_achievement-notify PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
 add_executable(nexus_gamesave-file-paths Nexus/gamesave-file-paths.cpp)
 
 add_executable(nexus_game-invitations Nexus/game-invitations.cpp)

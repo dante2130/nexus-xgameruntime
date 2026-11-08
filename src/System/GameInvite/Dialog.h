@@ -8,5 +8,5 @@ namespace nexus::invites
 // Internal async UI scheduling. The task owns any request/user resources and
 // must finish before the caller's block is completed. Not a DLL export.
 using DialogTask = std::function<HRESULT( const std::atomic<bool> & )>;
-HRESULT ScheduleDialog( XAsyncBlock *async, bool activity, DialogTask task );
+HRESULT ScheduleDialog( XAsyncBlock *async, bool activity, DialogTask task, bool achievements = false );
 }

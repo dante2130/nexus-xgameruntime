@@ -7,7 +7,7 @@
 #include <new>
 namespace nexus::invites
 {
-static const char inviteIdentity = 0, activityIdentity = 0;
+static const char inviteIdentity = 0, activityIdentity = 0, achievementsIdentity = 0;
 struct UiWork
 {
     LONG refs = 1;
@@ -57,7 +57,7 @@ static HRESULT CALLBACK Provider( XAsyncOp operation, const XAsyncProviderData *
     default: return E_NOTIMPL;
     }
 }
-HRESULT ScheduleDialog( XAsyncBlock *async, bool activity, DialogTask task )
+HRESULT ScheduleDialog( XAsyncBlock *async, bool activity, DialogTask task, bool achievements )
 {
     if ( !async || !task ) return E_INVALIDARG;
     auto *work = new ( std::nothrow ) UiWork; if ( !work ) return E_OUTOFMEMORY;
@@ -66,7 +66,7 @@ HRESULT ScheduleDialog( XAsyncBlock *async, bool activity, DialogTask task )
     {
         work->task = std::move( task ); work->async = async;
         hr = QueryApiImpl( CLSID_XThreadingImpl, IID_IXThreadingImpl, reinterpret_cast<void **>( &work->threading ) );
-        if ( SUCCEEDED( hr ) ) hr = work->threading->XAsyncBegin( async, work, activity ? &activityIdentity : &inviteIdentity, activity ? "XGameUiShowMultiplayerActivityGameInviteAsync" : "XGameUiShowSendGameInviteAsync", Provider );
+        if ( SUCCEEDED( hr ) ) hr = work->threading->XAsyncBegin( async, work, achievements ? &achievementsIdentity : activity ? &activityIdentity : &inviteIdentity, achievements ? "XGameUiShowAchievementsAsync" : activity ? "XGameUiShowMultiplayerActivityGameInviteAsync" : "XGameUiShowSendGameInviteAsync", Provider );
     }
     catch ( ... ) { hr = E_OUTOFMEMORY; }
     if ( FAILED( hr ) ) work->Release();
@@ -130,5 +130,18 @@ HRESULT ShowInvite( XAsyncBlock *async, XUserHandle user, const char *scid, cons
 }
 HRESULT ShowInviteResult( XAsyncBlock *async ) { return nexus::GetAsyncStatusForIdentity( async, &inviteIdentity ); }
 HRESULT ShowActivityInvite( XAsyncBlock *async, XUserHandle user ) { return !async || !user ? E_INVALIDARG : StartRequest( async, user, true, {} ); }
+HRESULT ShowAchievements( XAsyncBlock *async, XUserHandle user, UINT32 title )
+{
+    if ( !async || !user ) return E_INVALIDARG;
+    if ( !BridgeAvailable() ) return E_NOTIMPL;
+    const auto *config = nexus::GetGameConfiguration(); if ( !config || !config->titleId || !xuser_is_current_user( user ) ) return E_ACCESSDENIED;
+    if ( title && title != config->titleId ) return E_ACCESSDENIED;
+    const auto resolved = config->titleId;
+    return ScheduleDialog( async, false, [resolved]( const std::atomic<bool> &canceled ) {
+        std::vector<std::string> reply;
+        return canceled ? E_ABORT : GetBridge().Exchange( { "show-achievements", std::to_string( resolved ) }, reply );
+    }, true );
+}
+HRESULT ShowAchievementsResult( XAsyncBlock *async ) { return nexus::GetAsyncStatusForIdentity( async, &achievementsIdentity ); }
 HRESULT ShowActivityInviteResult( XAsyncBlock *async ) { return nexus::GetAsyncStatusForIdentity( async, &activityIdentity ); }
 }
