@@ -21,6 +21,7 @@
 
 #include "User/XUserImpl.h"
 #include "User/Presence.h"
+#include "GameInvite/Network.h"
 #include "User/OfflineIdentity.h"
 #include "../Runtime/Configuration.h"
 #include <afunix.h>
@@ -1589,6 +1590,7 @@ HRESULT WINAPI XUserImpl::XUserAddResult( XAsyncBlock *async, XUserHandle *newUs
                  : E_INVALIDARG;
     threading->Release();
     if ( SUCCEEDED( hr ) && *newUser ) nexus::presence::Start( *newUser );
+    if ( SUCCEEDED( hr ) && *newUser ) nexus::invites::StartAchievements( *newUser );
     return hr;
 }
 

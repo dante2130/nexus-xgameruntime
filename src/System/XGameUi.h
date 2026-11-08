@@ -3,6 +3,7 @@
 #include "../private.h"
 #include "StaticComObject.h"
 #include <xgameui.h>
+#include <atomic>
 class XGameUiImpl final : public nexus::StaticComObject<IXGameUiImpl4, IXGameUiImpl3, IXGameUiImpl2, IXGameUiImpl>
 {
 public:
@@ -87,5 +88,9 @@ public:
     HRESULT WINAPI XGameUiSetAchievementsUiResponse( XGameUiCallbackHandle callbackHandle ) override;
     HRESULT WINAPI XGameUiSetMultiplayerActivityGameInviteUiResponse( XGameUiCallbackHandle callbackHandle ) override;
     HRESULT WINAPI XGameUiSetErrorDialogUiResponse( XGameUiCallbackHandle callbackHandle ) override;
+    XGameUiNotificationPositionHint GetNotificationPositionHint() const noexcept { return notificationPosition; }
+
+private:
+    std::atomic<XGameUiNotificationPositionHint> notificationPosition{ XGameUiNotificationPositionHint_BottomCenter };
 };
 IUnknown *GetGameUiInterface() noexcept;

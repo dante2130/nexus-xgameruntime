@@ -72,13 +72,13 @@ HRESULT WINAPI XGameUiImpl::XGameUiShowAchievementsAsync( XAsyncBlock *async, XU
                                                           UINT32 titleId )
 {
     ( void )0;
-    return E_NOTIMPL;
+    return nexus::invites::ShowAchievements( async, requestingUser, titleId );
 }
 
 HRESULT WINAPI XGameUiImpl::XGameUiShowAchievementsResult( XAsyncBlock *async )
 {
     ( void )0;
-    return E_NOTIMPL;
+    return nexus::invites::BridgeAvailable() ? nexus::invites::ShowAchievementsResult( async ) : E_NOTIMPL;
 }
 
 HRESULT WINAPI XGameUiImpl::XGameUiShowPlayerPickerAsync( XAsyncBlock *async, XUserHandle requestingUser,
@@ -119,7 +119,8 @@ HRESULT WINAPI XGameUiImpl::XGameUiShowErrorDialogResult( XAsyncBlock *async )
 HRESULT WINAPI XGameUiImpl::XGameUiSetNotificationPositionHint( XGameUiNotificationPositionHint position )
 {
     ( void )0;
-    return E_NOTIMPL;
+    notificationPosition = position;
+    return S_OK;
 }
 
 HRESULT WINAPI XGameUiImpl::XGameUiShowTextEntryAsync( XAsyncBlock *async, const char *titleText,

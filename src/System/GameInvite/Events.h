@@ -43,6 +43,8 @@ Events &GetEvents() noexcept;
 HRESULT Accept( const char *uri ) noexcept;
 HRESULT ShowInvite( XAsyncBlock *async, XUserHandle user, const char *scid, const char *name, const char *session, const char *text, const char *context );
 HRESULT ShowInviteResult( XAsyncBlock *async );
+HRESULT ShowAchievements( XAsyncBlock *async, XUserHandle user, UINT32 title );
+HRESULT ShowAchievementsResult( XAsyncBlock *async );
 HRESULT ShowActivityInvite( XAsyncBlock *async, XUserHandle user );
 HRESULT ShowActivityInviteResult( XAsyncBlock *async );
 }

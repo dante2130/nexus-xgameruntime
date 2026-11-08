@@ -145,6 +145,8 @@ DWORD WINAPI Events::Run( void *context )
             {
                 notifications.Tick( user, config->titleId, [&]( const std::string &id, const std::string &uri, const std::string &sender, UINT64 expires ) {
                     if ( SUCCEEDED( events.transport.Exchange( { "notify", id, uri, sender, std::to_string( expires ) }, reply ) ) ) events.Deliver( uri, true );
+                }, [&]( const AchievementUnlock &unlock ) {
+                    GetAchievementWatcher().Report( unlock, [&]( const AchievementUnlock &item ) { ForwardAchievement( events.transport, item ); } );
                 } );
                 reply.clear();
                 if ( SUCCEEDED( events.transport.Exchange( { "events", events.cursor }, reply ) ) && reply.size() >= 3 )

@@ -483,7 +483,7 @@ TEST( NexusOptionalAbi, IXAppCaptureMetadataImplOriginalSlotsRemainCallable )
         using Function =
             HRESULT( WINAPI * )( void *self, const char *name, INT32 value, XAppCaptureMetadataPriority priority );
         auto call = reinterpret_cast<Function>( table[9] );
-        EXPECT_EQ( call( object, {}, {}, {} ), E_NOTIMPL );
+        EXPECT_EQ( call( object, {}, {}, {} ), E_INVALIDARG );
     }
     {
         // Frozen original C table slot 10: metadata_XAppCaptureMetadataAddDoubleEvent
@@ -529,7 +529,7 @@ TEST( NexusOptionalAbi, IXAppCaptureMetadataImplOriginalSlotsRemainCallable )
         // Frozen original C table slot 16: metadata_XAppCaptureMetadataRemainingStorageBytesAvailable
         using Function = HRESULT( WINAPI * )( void *self, UINT64 *value );
         auto call = reinterpret_cast<Function>( table[16] );
-        EXPECT_EQ( call( object, {} ), E_NOTIMPL );
+        EXPECT_EQ( call( object, {} ), S_OK );
     }
     {
         // Frozen original C table slot 17: metadata_XAppCaptureRegisterMetadataPurged
@@ -554,7 +554,7 @@ TEST( NexusOptionalAbi, IXGameEventImplOriginalSlotsRemainCallable )
             HRESULT( WINAPI * )( void *self, XUserHandle user, const char *serviceConfigId, const char *playSessionId,
                                  const char *eventName, const char *dimensionsJson, const char *measurementsJson );
         auto call = reinterpret_cast<Function>( table[3] );
-        EXPECT_EQ( call( object, {}, {}, {}, {}, {}, {} ), E_NOTIMPL );
+        EXPECT_EQ( call( object, {}, {}, {}, {}, {}, {} ), E_INVALIDARG );
     }
     object->Release();
 }
