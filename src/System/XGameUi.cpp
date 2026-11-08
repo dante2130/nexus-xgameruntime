@@ -119,7 +119,7 @@ HRESULT WINAPI XGameUiImpl::XGameUiShowErrorDialogResult( XAsyncBlock *async )
 HRESULT WINAPI XGameUiImpl::XGameUiSetNotificationPositionHint( XGameUiNotificationPositionHint position )
 {
     ( void )0;
-    notificationPosition = position;
+    notificationPosition = static_cast<UINT32>( position );
     return S_OK;
 }
 

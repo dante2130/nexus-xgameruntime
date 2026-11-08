@@ -53,7 +53,7 @@ static void Message()
 {
     AchievementUnlock unlock{ "123", "scid-1", "7", "Name", "Desc", "25", "https://example.invalid/i.png" };
     const auto request = AchievementRequest( unlock );
-    CHECK( "contract-order", request == std::vector<std::string>{ "achievement-unlocked", "123", "scid-1", "7", "Name", "Desc", "25", "https://example.invalid/i.png" } );
+    CHECK( "contract-order", (request == std::vector<std::string>{ "achievement-unlocked", "123", "scid-1", "7", "Name", "Desc", "25", "https://example.invalid/i.png" }) );
     unlock.description = std::string( 20000, 'a' ); unlock.name = std::string( 1023, 'x' ) + "\xC3\xA9\xC3\xA9"; unlock.iconUrl = std::string( 9000, 'u' );
     const auto longer = AchievementRequest( unlock );
     CHECK( "contract-size", longer.size() == 8 && longer[5].size() == 4096 && longer[7].size() == 2048 );
@@ -72,13 +72,13 @@ static void Poll()
     CHECK( "poll-url", network.urls[0].starts_with( "https://achievements.xboxlive.com/users/xuid(42)/achievements?titleId=123&unlockedOnly=true" ) );
     CHECK( "poll-throttled", watcher.Poll( network, nullptr, 123, 42, 2000, collect ) == S_FALSE && network.urls.size() == 1 );
     network.pages = { Page( Item( "1" ) + "," + Item( "2" ) + "," + Item( "3" ) ) };
-    CHECK( "poll-diff", watcher.Poll( network, nullptr, 123, 42, 40000, collect ) == S_OK && ids == std::vector<std::string>{ "3" } );
+    CHECK( "poll-diff", (watcher.Poll( network, nullptr, 123, 42, 40000, collect ) == S_OK && ids == std::vector<std::string>{ "3" }) );
     CHECK( "poll-dedupe", watcher.Poll( network, nullptr, 123, 42, 80000, collect ) == S_OK && ids.size() == 1 );
     network.pages = { Page( Item( "3" ) + "," + Item( "4", "Achieved", "999" ) + "," + Item( "5", "NotStarted" ) ) };
     CHECK( "poll-filters-other-title-and-locked", watcher.Poll( network, nullptr, 123, 42, 120000, collect ) == S_OK && ids.size() == 1 );
     const auto before = network.urls.size();
     network.pages = { Page( Item( "6" ), "\"tok\"" ), Page( Item( "7" ) ) };
-    CHECK( "poll-paging", watcher.Poll( network, nullptr, 123, 42, 160000, collect ) == S_OK && network.urls.size() == before + 2 && network.urls.back().ends_with( "&continuationToken=tok" ) && ids == std::vector<std::string>{ "3", "6", "7" } );
+    CHECK( "poll-paging", (watcher.Poll( network, nullptr, 123, 42, 160000, collect ) == S_OK && network.urls.size() == before + 2 && network.urls.back().ends_with( "&continuationToken=tok" ) && ids == std::vector<std::string>{ "3", "6", "7" }) );
     network.result = E_FAIL;
     CHECK( "poll-failure-reported", FAILED( watcher.Poll( network, nullptr, 123, 42, 200000, collect ) ) && ids.size() == 3 );
 }
@@ -97,7 +97,7 @@ static void Stubs()
 {
     IXGameUiImpl *ui = nullptr;
     CHECK( "ui-interface", SUCCEEDED( QueryApiImpl( CLSID_XGameUiImpl, __uuidof( IXGameUiImpl ), reinterpret_cast<void **>( &ui ) ) ) && ui );
-    CHECK( "position-hint-ok", ui && ui->XGameUiSetNotificationPositionHint( XGameUiNotificationPositionHint_TopRight ) == S_OK );
+    CHECK( "position-hint-ok", ui && ui->XGameUiSetNotificationPositionHint( XGameUiNotificationPositionHint::TopRight ) == S_OK );
     CHECK( "show-achievements-null-async", ui && ui->XGameUiShowAchievementsAsync( nullptr, nullptr, 123 ) == E_INVALIDARG );
     IXGameEventImpl *events = nullptr;
     CHECK( "event-interface", SUCCEEDED( QueryApiImpl( CLSID_XGameEventImpl, __uuidof( IXGameEventImpl ), reinterpret_cast<void **>( &events ) ) ) && events );

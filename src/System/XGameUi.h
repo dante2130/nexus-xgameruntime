@@ -88,9 +88,9 @@ public:
     HRESULT WINAPI XGameUiSetAchievementsUiResponse( XGameUiCallbackHandle callbackHandle ) override;
     HRESULT WINAPI XGameUiSetMultiplayerActivityGameInviteUiResponse( XGameUiCallbackHandle callbackHandle ) override;
     HRESULT WINAPI XGameUiSetErrorDialogUiResponse( XGameUiCallbackHandle callbackHandle ) override;
-    XGameUiNotificationPositionHint GetNotificationPositionHint() const noexcept { return notificationPosition; }
+    XGameUiNotificationPositionHint GetNotificationPositionHint() const noexcept { return static_cast<XGameUiNotificationPositionHint>( notificationPosition.load() ); }
 
 private:
-    std::atomic<XGameUiNotificationPositionHint> notificationPosition{ XGameUiNotificationPositionHint_BottomCenter };
+    std::atomic<UINT32> notificationPosition{ 0 };
 };
 IUnknown *GetGameUiInterface() noexcept;
