@@ -41,6 +41,7 @@ static void Push()
     const Achievement collect = [&]( const AchievementUnlock &unlock ) { got.push_back( unlock ); };
     const auto body = "{\"service\":\"achievements\",\"notificationData\":" + Item( "7" ) + "}";
     CHECK( "push-parsed", ParseAchievementNotification( body, 42, 123, collect ) == S_OK && got.size() == 1 );
+    if ( got.empty() ) return;
     CHECK( "push-fields", got[0].id == "7" && got[0].scid == "scid-1" && got[0].name == "Name 7" && got[0].description == "Desc" && got[0].gamerscore == "25" && got[0].iconUrl == "https://example.invalid/i.png" && got[0].titleId == "123" );
     CHECK( "push-title-bound", FAILED( ParseAchievementNotification( body, 42, 124, collect ) ) && got.size() == 1 );
     CHECK( "push-other-service", FAILED( ParseAchievementNotification( "{\"service\":\"multiplayer\"}", 42, 123, collect ) ) );
