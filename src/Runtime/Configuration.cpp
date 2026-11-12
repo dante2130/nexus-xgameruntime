@@ -3,6 +3,7 @@
 #include "../private.h"
 #include "Configuration.h"
 #include "LegacyServiceClient.h"
+#include "TitleIdentityDiagnostics.h"
 #include <bcrypt.h>
 #include <charconv>
 #include <atomic>
@@ -26,6 +27,52 @@ static bool IsValidStoreId( std::string_view value )
     if ( value.size() != 12 ) return false;
     return std::all_of( value.begin(), value.end(),
                         []( char c ) { return ( c >= '0' && c <= '9' ) || ( c >= 'A' && c <= 'Z' ); } );
+}
+
+static bool IsValidScid( std::string_view value ) noexcept
+{
+    if ( value.size() != 36 ) return false;
+    for ( size_t i = 0; i < value.size(); ++i )
+    {
+        const char c = value[i];
+        if ( i == 8 || i == 13 || i == 18 || i == 23 )
+        {
+            if ( c != '-' ) return false;
+        }
+        else if ( !( ( c >= '0' && c <= '9' ) || ( c >= 'a' && c <= 'f' ) || ( c >= 'A' && c <= 'F' ) ) )
+            return false;
+    }
+    return true;
+}
+
+HRESULT GetGameScid( const GameConfiguration &config, std::string &scid ) noexcept
+{
+    scid.clear();
+    const XmlNode *storage = config.game.child( "SaveGameStorage" );
+    const XmlNode *node = storage ? storage->child( "SCID" ) : nullptr;
+    if ( !node ) return E_INVALIDARG;
+    std::string_view value = node->text;
+    const auto first = value.find_first_not_of( " \t\r\n" ), last = value.find_last_not_of( " \t\r\n" );
+    if ( first == std::string_view::npos ) return E_INVALIDARG;
+    value = value.substr( first, last - first + 1 );
+    if ( !IsValidScid( value ) ) return E_INVALIDARG;
+    try
+    {
+        scid.assign( value );
+        return S_OK;
+    }
+    catch ( const std::bad_alloc & )
+    {
+        scid.clear();
+        return E_OUTOFMEMORY;
+    }
+}
+
+HRESULT GetGameScid( std::string &scid ) noexcept
+{
+    scid.clear();
+    const GameConfiguration *config = GetGameConfiguration();
+    return config ? GetGameScid( *config, scid ) : E_INVALIDARG;
 }
 
 HRESULT GetPackageFamilyName( std::string_view name, std::string_view publisher, std::string &result ) noexcept
@@ -96,6 +143,7 @@ static HRESULT load( GameConfiguration &config, const INITIALIZE_OPTIONS *option
     if ( options && ( options->gameConfig || options->isInlineConfig ) )
     {
         if ( !options->gameConfig ) return E_GAMERUNTIME_GAMECONFIG_BAD_FORMAT;
+        config.configSource = options->isInlineConfig ? GameConfigSource::Inline : GameConfigSource::File;
         if ( options->isInlineConfig )
         {
             size_t length = strnlen( options->gameConfig, 4 * 1024 * 1024 + 1 );
@@ -166,8 +214,13 @@ static HRESULT load( GameConfiguration &config, const INITIALIZE_OPTIONS *option
             }
         }
     }
+    if ( !config.msaAppId.empty() && config.msaAppIdSource == MsaAppIdSource::None )
+        config.msaAppIdSource = MsaAppIdSource::Explicit;
+    if ( config.msaAppId.empty() ) config.msaAppIdSource = MsaAppIdSource::None;
     hr = LoadLegacyServiceClient( config );
     if ( FAILED( hr ) ) return hr == E_OUTOFMEMORY ? hr : E_GAMERUNTIME_GAMECONFIG_BAD_FORMAT;
+    if ( !config.msaAppId.empty() && config.msaAppIdSource == MsaAppIdSource::None )
+        config.msaAppIdSource = MsaAppIdSource::Explicit;
     // Launcher discovery hints cannot grant rights. Malformed hints are ignored
     // atomically, without discarding the manifest list or creating entitlements.
     char hint[256 * 13];
@@ -205,6 +258,7 @@ static HRESULT load( GameConfiguration &config, const INITIALIZE_OPTIONS *option
         }
         if ( valid ) config.relatedProducts = std::move( merged );
     }
+    title_identity::WriteConfig( config );
     return S_OK;
 }
 

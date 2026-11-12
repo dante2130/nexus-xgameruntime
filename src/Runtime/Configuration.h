@@ -5,6 +5,20 @@
 
 namespace nexus
 {
+enum class GameConfigSource
+{
+    Default,
+    Inline,
+    File,
+};
+
+enum class MsaAppIdSource
+{
+    None,
+    Explicit,
+    Legacy,
+};
+
 struct GameConfiguration
 {
     XmlNode game;
@@ -13,6 +27,8 @@ struct GameConfiguration
     bool fullTrust = false;
     std::wstring directory;
     std::vector<std::string> relatedProducts;
+    GameConfigSource configSource = GameConfigSource::Default;
+    MsaAppIdSource msaAppIdSource = MsaAppIdSource::None;
 };
 inline bool UsesLegacyFullTrust( const GameConfiguration &config ) noexcept
 {
@@ -20,5 +36,9 @@ inline bool UsesLegacyFullTrust( const GameConfiguration &config ) noexcept
 }
 HRESULT InitializeGameConfiguration( const INITIALIZE_OPTIONS *options ) noexcept;
 const GameConfiguration *GetGameConfiguration() noexcept;
+// Narrow current-package SCID reader for the explicit legacy IID3 compatibility
+// view. It uses the already parsed immutable manifest; no second file search.
+HRESULT GetGameScid( const GameConfiguration &config, std::string &scid ) noexcept;
+HRESULT GetGameScid( std::string &scid ) noexcept;
 HRESULT GetPackageFamilyName( std::string_view name, std::string_view publisher, std::string &result ) noexcept;
 }
